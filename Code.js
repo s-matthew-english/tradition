@@ -1,39 +1,32 @@
-  //var doc = DocumentApp.openById("1ZSqN-OOxvDV9YLpuDsXhqSWx4X3djUaVehuIlZbanxo");
-
-
-
-// SCRIPT: https://script.google.com/macros/d/1RM2O0kdr0RMspXE6vgu0yfrUWcLvqfWccAsfnn5ywLQDtd9jkMrU9rdG/edit?splash=yes
-
-
+//
+// SCRIPT WEBSITE: https://script.google.com/macros/d/1RM2O0kdr0RMspXE6vgu0yfrUWcLvqfWccAsfnn5ywLQDtd9jkMrU9rdG/edit?splash=yes
+//
 // FOLDER: https://drive.google.com/drive/folders/0BxVAKBzwjD0BMlVCTGhmelExdTg
-
+//
 // template: https://docs.google.com/document/d/1ZSqN-OOxvDV9YLpuDsXhqSWx4X3djUaVehuIlZbanxo/edit
-
-
-// this functions executes the two functions below
-// it seems this Google app script engine can only 
-// run one function at a time, so this one contains
-// the other two 
 //
 // push to Drive with 'gapps upload'
 //
 function main(){
 
   // set by user  
-  INPUT_SPREADSHEET = "1mrqZ9GJctfWqqshAWcXGZzI2uo6nMLqcSk2-Mj96nRE";
-  SUBSHEET = "ABCFinance";
+  var inputSpreadsheet = "1mrqZ9GJctfWqqshAWcXGZzI2uo6nMLqcSk2-Mj96nRE";
+  var subsheet = "ABCFinance";
+
+  var templateID = "1ZSqN-OOxvDV9YLpuDsXhqSWx4X3djUaVehuIlZbanxo";
+  var folderID = "0BxVAKBzwjD0BMlVCTGhmelExdTg";
 
   // where are the emails? set this according to sheet
-  Emails = 4
-  First_Name = 1
+  var emailsCol = 4
+  var firstNameCol = 1
 
   // call the function that gets the emails from the ABC finance sheet
-  emails = extractDataFromSheet( INPUT_SPREADSHEET, SUBSHEET, Emails );
+  var emailsList = extractDataFromSheet( inputSpreadsheet, subsheet, emailsCol );
 
-  names = extractDataFromSheet( INPUT_SPREADSHEET, SUBSHEET, First_Name );
+  var namesList = extractDataFromSheet( inputSpreadsheet, subsheet, firstNameCol );
 
   // generate the certificate document
-  generateDocument( emails, names );
+  generateDocumentSendMail(emailsList, namesList, templateID, folderID);
 
 }
 
@@ -68,42 +61,42 @@ function extractDataFromSheet( INPUT_SPREADSHEET, SUBSHEET, INFO_INDEX ) {
 
 
 
-function generateDocument(input_array) {
+function generateDocumentSendMail(emails, names, templateID, folderID) {
 
-  emails = input_array; 
-
-  // try to write to a template
-  var templateid = "1ZSqN-OOxvDV9YLpuDsXhqSWx4X3djUaVehuIlZbanxo"; // get template file id
-  var FOLDER_NAME = "Certificates Folder"; // folder name of where to put completed diaries
-
-
-
-   var copyId = DriveApp.getFileById( templateid )
-                        .makeCopy('TESTNG_'+ emails[5] )
+   var copyId = DriveApp.getFileById( templateID )
+                        .makeCopy('TSTNG_'+ emails[5] )
                         .getId();
 
    var copyDoc = DocumentApp.openById(copyId);
    var copyBody = copyDoc.getActiveSection();
 
-   copyBody.replaceText("%WEEKNO%", emails[5]);
+   copyBody.replaceText("%WEEKNO%", names[5]);
 
 
    copyDoc.saveAndClose();
 
 
-
-  var file = DriveApp.getFileById( copyId );
+  var file = DriveApp.getFileById(copyId);
 
   //to put file in folder
-  DriveApp.getFolderById("0BxVAKBzwjD0BMlVCTGhmelExdTg")
-          .addFile( file );
+  DriveApp.getFolderById(folderID)
+          .addFile(file);
 
 
- 
+   var pdf = DriveApp.getFileById(copyId).getAs("application/pdf");
+
+   var participant_email = "s.matthew.english+187@gmail.com";
+
+   var subject = "Here's your certificate";
+   var body    = "Hello " + names[5] + " " + "<br /><br />" 
+   + "Thank you for calling " + emails[5] + " Support. The attached document contains information " 
+   + "for you to reference related to the credits we have issued back to your original form of payment." + "<br /><br />" 
+   + "If you have any further questions or require additional assistance please let us know." + "<br /><br />" 
+   + "Regards," + "<br /><br />" 
+   + ", Payments Department" + "<br />" 
+   MailApp.sendEmail(participant_email, subject, body, {htmlBody: body, attachments: pdf}); 
 
 }
-
-
 
 
 
